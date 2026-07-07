@@ -117,10 +117,12 @@
     max-width:88%;text-align:left;
   }
   .cl-toast.show{opacity:1;}
+  .cl-toast.error{background:var(--rust);}
   .cl-toast .stamp-badge{
     border:2px solid var(--gold);color:var(--gold);border-radius:50%;width:22px;height:22px;
     display:flex;align-items:center;justify-content:center;font-size:12px;transform:rotate(-10deg);flex:none;
   }
+  .cl-toast.error .stamp-badge{border-color:#fff;color:#fff;}
 
   /* Fotos */
   .cl-foto-input{display:none;}
@@ -312,6 +314,9 @@
   const todayStr = () => new Date().toISOString().slice(0,10);
   const nowTime = () => new Date().toTimeString().slice(0,5);
 
+  // ⚠️ COLE AQUI A URL DO SEU APP DA WEB (Google Apps Script), terminando em /exec
+  const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycby7hO8PHwO5QOV1aryzxYDIn4veYm3SIPOzLUy74lYD39teV0xlhEJz_zT5j6VaWkXO/exec';
+
   // ---------- Tabs + trava de acesso ao relatório do gestor ----------
   const REPORT_PIN = '2026'; // altere aqui para o PIN que preferir
   let reportUnlocked = false;
@@ -463,10 +468,11 @@
   });
 
   // ---------- Toast ----------
-  function showToast(text){
+  function showToast(text, type){
     $('cl-toast-text').textContent = text;
+    $('cl-toast').classList.toggle('error', type === 'error');
     $('cl-toast').classList.add('show');
-    setTimeout(()=> $('cl-toast').classList.remove('show'), 3000);
+    setTimeout(()=> $('cl-toast').classList.remove('show'), 3200);
   }
 
   // ---------- Save visit ----------
@@ -504,7 +510,7 @@
 
   $('btn-salvar').addEventListener('click', async ()=>{
     if(!validateForm()){
-      showToast('Preencha todos os campos e confirme o envio das fotos antes de salvar');
+      showToast('Preencha todos os campos e confirme o envio das fotos antes de salvar', 'error');
       return;
     }
     const promotor = $('f-promotor').value.trim();
@@ -513,7 +519,7 @@
     const data = $('f-data').value;
 
     if(!promotor || !cliente || !data){
-      showToast('Preencha promotor, cliente e data');
+      showToast('Preencha promotor, cliente e data', 'error');
       return;
     }
 
@@ -544,25 +550,34 @@
     };
 
     const approxSize = new Blob([JSON.stringify(record)]).size;
-    if(approxSize > 4500000){
-      showToast('Fotos excedem o limite de tamanho. Remova algumas e tente novamente.');
+    if(approxSize > 15000000){
+      showToast('Fotos excedem o limite de tamanho. Remova algumas e tente novamente.', 'error');
+      return;
+    }
+
+    if(!SHEETS_API_URL || SHEETS_API_URL.indexOf('COLE_AQUI') !== -1){
+      showToast('Backend não configurado. Avise o administrador do site.', 'error');
       return;
     }
 
     $('btn-salvar').disabled = true;
     try{
-      const res = await window.storage.set('visita:' + record.id, JSON.stringify(record), true);
-      if(res){
-        showToast('Visita registrada com sucesso (' + (record.fotos.length) + ' foto(s))');
+      const res = await fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveVisit', record })
+      });
+      const json = await res.json();
+      if(json && json.ok){
+        showToast('Visita registrada com sucesso (' + record.fotos.length + ' foto(s))');
         clearForm();
       } else {
-        showToast('Não foi possível salvar. Tente novamente.');
+        showToast('Não foi possível salvar: ' + (json && json.error ? json.error : 'erro desconhecido'), 'error');
       }
     }catch(err){
       console.error(err);
-      showToast('Erro ao salvar a visita');
+      showToast('Erro ao salvar a visita. Verifique sua conexão.', 'error');
     }
-    $('btn-salvar').disabled = false;
+    validateForm();
   });
 
   // ---------- Modal de fotos ----------
@@ -590,23 +605,25 @@
     $('btn-exportar').disabled = true;
     $('export-status').textContent = '';
 
-    let keysResult;
-    try{
-      keysResult = await window.storage.list('visita:', true);
-    }catch(err){
-      $('g-content').innerHTML = '<div class="cl-empty">Nenhuma visita registrada ainda.</div>';
+    if(!SHEETS_API_URL || SHEETS_API_URL.indexOf('COLE_AQUI') !== -1){
+      $('g-content').innerHTML = '<div class="cl-empty">Backend não configurado. Cole a URL do Apps Script no código do site.</div>';
       return;
     }
-    const keys = (keysResult && keysResult.keys) ? keysResult.keys : [];
-    const records = [];
-    for(const key of keys){
-      try{
-        const r = await window.storage.get(key, true);
-        if(r && r.value){
-          const rec = JSON.parse(r.value);
-          if(rec.data === dateStr) records.push(rec);
-        }
-      }catch(err){ /* skip missing/broken key */ }
+
+    let records = [];
+    try{
+      const res = await fetch(SHEETS_API_URL + '?action=listVisits&date=' + encodeURIComponent(dateStr));
+      const json = await res.json();
+      if(json && json.ok){
+        records = json.records || [];
+      } else {
+        $('g-content').innerHTML = '<div class="cl-empty">Erro ao carregar: ' + (json && json.error ? json.error : 'erro desconhecido') + '</div>';
+        return;
+      }
+    }catch(err){
+      console.error(err);
+      $('g-content').innerHTML = '<div class="cl-empty">Não foi possível conectar à planilha. Verifique sua conexão.</div>';
+      return;
     }
     records.sort((a,b)=> (a.promotor||'').localeCompare(b.promotor||'') || (a.criadoEm||'').localeCompare(b.criadoEm||''));
     lastRecords = records;
@@ -777,27 +794,27 @@
       });
 
       const fotosSheet = workbook.addWorksheet('Fotos');
-      fotosSheet.getColumn(1).width = 42;
-      fotosSheet.getColumn(2).width = 20;
+      fotosSheet.getColumn(1).width = 46;
+      fotosSheet.getColumn(2).width = 30;
       let rowCursor = 1;
       const comFotos = lastRecords.filter(r => r.fotos && r.fotos.length);
       if(comFotos.length === 0){
         fotosSheet.getCell('A1').value = 'Nenhuma foto anexada nas visitas deste dia.';
-      }
-      for(const r of comFotos){
-        fotosSheet.getCell('A' + rowCursor).value = r.promotor + ' — ' + r.cliente + ' (' + (r.cnpj || 's/ CNPJ') + ') — ' + r.data;
-        fotosSheet.getCell('A' + rowCursor).font = {bold:true};
-        rowCursor += 1;
-        for(const dataUrl of r.fotos){
-          const match = dataUrl.match(/^data:image\/(\w+);base64,(.*)$/);
-          if(!match) continue;
-          const ext = match[1] === 'jpg' ? 'jpeg' : match[1];
-          const imgId = workbook.addImage({base64: match[2], extension: ext});
-          fotosSheet.getRow(rowCursor).height = 92;
-          fotosSheet.addImage(imgId, {tl:{col:1, row: rowCursor - 1}, ext:{width:140, height:105}});
+      } else {
+        fotosSheet.getCell('A1').value = 'Promotor / Cliente / Data';
+        fotosSheet.getCell('B1').value = 'Fotos (clique para abrir)';
+        fotosSheet.getRow(1).font = {bold:true};
+        rowCursor = 2;
+        for(const r of comFotos){
+          fotosSheet.getCell('A' + rowCursor).value = r.promotor + ' — ' + r.cliente + ' (' + (r.cnpj || 's/ CNPJ') + ') — ' + r.data;
+          fotosSheet.getCell('A' + rowCursor).font = {bold:true};
+          r.fotos.forEach((url, i)=>{
+            const cell = fotosSheet.getCell(String.fromCharCode(66 + i) + rowCursor);
+            cell.value = {text: 'Foto ' + (i+1), hyperlink: url};
+            cell.font = {color:{argb:'FF2E6F49'}, underline:true};
+          });
           rowCursor += 1;
         }
-        rowCursor += 1;
       }
 
       const buffer = await workbook.xlsx.writeBuffer();
