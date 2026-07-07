@@ -1,0 +1,842 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F5F4F0;
+    --paper-alt:#EAE7DF;
+    --card:#FFFFFF;
+    --green:#2E6F49;
+    --green-dark:#1F4E34;
+    --rust:#B34700;
+    --gold:#B08A1E;
+    --line:#DAD6CB;
+    --muted:#6B6459;
+  }
+  *{box-sizing:border-box;}
+  #cl-app{
+    font-family:'IBM Plex Sans', sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100%;
+    padding:0;
+    line-height:1.4;
+  }
+  .cl-wrap{max-width:840px;margin:0 auto;padding:20px 16px 60px;}
+
+  .cl-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 4px 22px;border-bottom:2px solid var(--ink);margin-bottom:22px;
+  }
+  .cl-title{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;letter-spacing:-0.01em;
+  }
+  .cl-title small{display:block;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:11px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+
+  .cl-tabs{display:flex;gap:8px;margin-bottom:24px;}
+  .cl-tab{
+    flex:1;padding:12px 10px;text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;
+    background:var(--card);border:2px solid var(--line);border-radius:2px;cursor:pointer;color:var(--muted);
+    transition:.15s ease;
+  }
+  .cl-tab.active{border-color:var(--ink);background:var(--ink);color:var(--paper);}
+  .cl-view{display:none;}
+  .cl-view.active{display:block;}
+
+  .cl-card{
+    background:var(--card);border:1px solid var(--line);border-radius:2px;padding:20px;margin-bottom:16px;
+    position:relative;
+  }
+  .cl-section-title{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--green-dark);margin:0 0 14px;display:flex;align-items:center;gap:8px;
+  }
+  .cl-section-title .num{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--paper-alt);
+    padding:2px 6px;border-radius:2px;color:var(--muted);
+  }
+
+  .cl-field{margin-bottom:14px;}
+  .cl-field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;
+    text-transform:uppercase;letter-spacing:.05em;}
+  .cl-field input[type=text], .cl-field input[type=date], .cl-field input[type=time]{
+    width:100%;padding:10px 11px;border:1.5px solid var(--line);border-radius:2px;font-family:'IBM Plex Sans',sans-serif;
+    font-size:14.5px;background:var(--paper);color:var(--ink);
+  }
+  .cl-validade-row{display:grid;grid-template-columns:1fr 140px auto;gap:8px;margin-bottom:8px;align-items:center;}
+  @media(max-width:520px){.cl-validade-row{grid-template-columns:1fr;}}
+  .cl-validade-row input, .cl-validade-row select{
+    padding:9px 10px;border:1.5px solid var(--line);border-radius:2px;font-size:14px;background:var(--paper);
+    font-family:'IBM Plex Sans',sans-serif;color:var(--ink);
+  }
+  .cl-field input:focus{outline:none;border-color:var(--green);background:#fff;}
+  .cl-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:520px){.cl-row2{grid-template-columns:1fr;}}
+
+  .cl-check{
+    display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px dashed var(--line);cursor:pointer;
+  }
+  .cl-check:last-child{border-bottom:none;}
+  .cl-check input{position:absolute;opacity:0;width:0;height:0;}
+  .cl-stamp{
+    width:26px;height:26px;flex:none;border-radius:50%;border:2px solid var(--muted);
+    display:flex;align-items:center;justify-content:center;transition:.15s ease;color:transparent;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;
+  }
+  .cl-check input:checked + .cl-stamp{
+    border-color:var(--green);color:var(--green);transform:rotate(-8deg) scale(1.05);
+  }
+  .cl-check input:checked ~ .cl-check-label{color:var(--ink);}
+  .cl-check-label{font-size:14.5px;color:var(--ink);}
+
+  .cl-btn{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;padding:11px 18px;border-radius:2px;
+    border:2px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;transition:.15s ease;
+  }
+  .cl-btn:hover{background:var(--green-dark);border-color:var(--green-dark);}
+  .cl-btn.ghost{background:transparent;color:var(--ink);}
+  .cl-btn.ghost:hover{background:var(--paper-alt);}
+  .cl-btn.small{padding:6px 12px;font-size:12.5px;}
+  .cl-btn.rust{border-color:var(--rust);background:var(--rust);}
+  .cl-btn.rust:hover{background:#8f3800;border-color:#8f3800;}
+  .cl-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .cl-ruptura-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;}
+  @media(max-width:520px){.cl-ruptura-row{grid-template-columns:1fr;}}
+  .cl-ruptura-row input{padding:9px 10px;border:1.5px solid var(--line);border-radius:2px;font-size:14px;background:var(--paper);}
+  .cl-remove{background:none;border:none;color:var(--rust);font-size:18px;cursor:pointer;padding:4px 8px;}
+
+  .cl-submit-bar{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+
+  .cl-toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--green-dark);color:#fff;padding:14px 22px;border-radius:2px;font-family:'Space Grotesk',sans-serif;
+    font-weight:600;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:80;
+    display:flex;align-items:center;gap:10px;opacity:0;transition:opacity .25s ease;pointer-events:none;
+    max-width:88%;text-align:left;
+  }
+  .cl-toast.show{opacity:1;}
+  .cl-toast.error{background:var(--rust);}
+  .cl-toast .stamp-badge{
+    border:2px solid var(--gold);color:var(--gold);border-radius:50%;width:22px;height:22px;
+    display:flex;align-items:center;justify-content:center;font-size:12px;transform:rotate(-10deg);flex:none;
+  }
+  .cl-toast.error .stamp-badge{border-color:#fff;color:#fff;}
+
+  /* Fotos */
+  .cl-foto-input{display:none;}
+  .cl-foto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:12px 0;}
+  .cl-foto-thumb{position:relative;border-radius:2px;overflow:hidden;border:1.5px solid var(--line);aspect-ratio:1;}
+  .cl-foto-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .cl-foto-thumb button{
+    position:absolute;top:3px;right:3px;background:rgba(27,36,48,.75);color:#fff;border:none;
+    width:20px;height:20px;border-radius:50%;font-size:13px;cursor:pointer;line-height:1;
+  }
+  .cl-foto-hint{font-size:12px;color:var(--muted);margin-top:6px;}
+  .cl-foto-count{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* Gestor view */
+  .cl-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:18px;}
+  @media(max-width:600px){.cl-summary{grid-template-columns:1fr 1fr;}}
+  .cl-stat{background:var(--card);border:1px solid var(--line);border-radius:2px;padding:14px;text-align:center;}
+  .cl-stat .n{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;color:var(--green-dark);}
+  .cl-stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px;}
+
+  .cl-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;}
+
+  table.cl-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);}
+  table.cl-table th{
+    text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--muted);border-bottom:2px solid var(--ink);padding:8px 8px;
+  }
+  table.cl-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.cl-table tr.cl-row-expand{cursor:pointer;}
+  table.cl-table tr.cl-row-expand:hover{background:var(--paper-alt);}
+  .cl-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+  .cl-badge.ok{background:#E4EFE8;color:var(--green-dark);}
+  .cl-badge.pending{background:#F3E3D3;color:var(--rust);}
+  .cl-fotolink{color:var(--green-dark);text-decoration:underline;cursor:pointer;font-weight:600;background:none;border:none;font-size:13px;padding:0;}
+  .cl-cnpj{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .cl-rup-detail{background:var(--paper-alt);font-size:12.5px;padding:8px 12px;}
+  .cl-empty{text-align:center;padding:40px 10px;color:var(--muted);font-size:14px;}
+
+  .cl-loading{text-align:center;padding:30px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+
+  /* Modal de fotos */
+  .cl-modal-backdrop{
+    position:fixed;inset:0;background:rgba(27,36,48,.82);z-index:90;display:none;
+    align-items:center;justify-content:center;padding:24px;
+  }
+  .cl-modal-backdrop.show{display:flex;}
+  .cl-modal{background:var(--paper);border-radius:2px;max-width:640px;width:100%;max-height:82vh;overflow-y:auto;padding:20px;}
+  .cl-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .cl-modal-head h3{font-family:'Space Grotesk',sans-serif;font-size:16px;margin:0;}
+  .cl-modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);}
+  .cl-modal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .cl-modal-grid img{width:100%;border-radius:2px;border:1px solid var(--line);cursor:zoom-in;}
+</style>
+
+<div id="cl-app">
+  <div class="cl-wrap">
+    <div class="cl-header">
+      <div class="cl-title">Visita ao PDV<small>checklist diário &middot; promotor de vendas</small></div>
+    </div>
+
+    <div class="cl-tabs">
+      <div class="cl-tab active" data-tab="promotor">📋 Registrar visita</div>
+      <div class="cl-tab" data-tab="gestor">📊 Relatório do gestor</div>
+    </div>
+
+    <!-- ===================== VIEW PROMOTOR ===================== -->
+    <div class="cl-view active" id="view-promotor">
+      <div class="cl-card">
+        <div class="cl-section-title"><span class="num">01</span> Identificação da visita</div>
+        <div class="cl-row2">
+          <div class="cl-field"><label>Nome do promotor</label><input type="text" id="f-promotor" placeholder="Ex: João Silva"></div>
+          <div class="cl-field"><label>Data</label><input type="date" id="f-data"></div>
+        </div>
+        <div class="cl-row2">
+          <div class="cl-field"><label>Cliente / Loja</label><input type="text" id="f-cliente" placeholder="Nome do cliente"></div>
+          <div class="cl-field"><label>CNPJ</label><input type="text" id="f-cnpj" placeholder="00.000.000/0000-00"></div>
+        </div>
+        <div class="cl-field"><label>Horário de entrada</label>
+          <div style="display:flex;gap:8px;">
+            <input type="time" id="f-entrada" style="flex:1;">
+            <button class="cl-btn ghost small" type="button" id="btn-agora-entrada">Agora</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cl-card">
+        <div class="cl-section-title"><span class="num">02</span> Abertura</div>
+        <label class="cl-check"><input type="checkbox" id="a-estoque"><span class="cl-stamp">✓</span><span class="cl-check-label">Conferir estoque disponível dos produtos</span></label>
+        <label class="cl-check"><input type="checkbox" id="a-validade"><span class="cl-stamp">✓</span><span class="cl-check-label">Verificar validade dos produtos</span></label>
+        <label class="cl-check"><input type="checkbox" id="a-precos"><span class="cl-stamp">✓</span><span class="cl-check-label">Checar se os preços expostos estão corretos</span></label>
+        <label class="cl-check"><input type="checkbox" id="a-pdv"><span class="cl-stamp">✓</span><span class="cl-check-label">Organizar e higienizar o PDV</span></label>
+      </div>
+
+      <div class="cl-card">
+        <div class="cl-section-title"><span class="num">03</span> Produtos com validade próxima</div>
+        <div id="validade-list"></div>
+        <button class="cl-btn ghost small" type="button" id="btn-add-validade">+ Adicionar produto</button>
+      </div>
+
+      <div class="cl-card">
+        <div class="cl-section-title"><span class="num">04</span> Exposição e merchandising</div>
+        <label class="cl-check"><input type="checkbox" id="e-layout"><span class="cl-stamp">✓</span><span class="cl-check-label">Produtos no espaço e layout correto</span></label>
+        <label class="cl-check"><input type="checkbox" id="e-pontosextras"><span class="cl-stamp">✓</span><span class="cl-check-label">Pontos extras devidamente abastecidos</span></label>
+        <label class="cl-check"><input type="checkbox" id="e-reabastecer"><span class="cl-stamp">✓</span><span class="cl-check-label">Reabastecer produtos sempre que necessário</span></label>
+        <label class="cl-check"><input type="checkbox" id="e-cartazes"><span class="cl-stamp">✓</span><span class="cl-check-label">Cartazes de promoções vigentes</span></label>
+        <label class="cl-check"><input type="checkbox" id="e-materiais"><span class="cl-stamp">✓</span><span class="cl-check-label">Materiais de merchandising bem posicionados</span></label>
+        <label class="cl-check"><input type="checkbox" id="e-fotos"><span class="cl-stamp">✓</span><span class="cl-check-label">Fotos do antes e depois tiradas</span></label>
+      </div>
+
+      <div class="cl-card">
+        <div class="cl-section-title"><span class="num">05</span> Fotos da visita</div>
+        <div class="cl-foto-grid" id="foto-grid"></div>
+        <input type="file" id="foto-input" class="cl-foto-input" accept="image/*" capture="environment" multiple>
+        <button class="cl-btn ghost small" type="button" id="btn-add-foto">+ Adicionar fotos</button>
+        <div class="cl-foto-count" id="foto-count">Nenhuma foto anexada</div>
+        <div class="cl-foto-hint">As fotos são comprimidas automaticamente antes de salvar.</div>
+      </div>
+
+      <div class="cl-card">
+        <div class="cl-section-title"><span class="num">06</span> Registro de ruptura</div>
+        <div id="ruptura-list"></div>
+        <button class="cl-btn ghost small" type="button" id="btn-add-ruptura">+ Adicionar ruptura</button>
+      </div>
+
+      <div class="cl-card">
+        <div class="cl-section-title"><span class="num">07</span> Fechamento</div>
+        <div class="cl-field"><label>Horário de saída</label>
+          <div style="display:flex;gap:8px;">
+            <input type="time" id="f-saida" style="flex:1;">
+            <button class="cl-btn ghost small" type="button" id="btn-agora-saida">Agora</button>
+          </div>
+        </div>
+        <label class="cl-check"><input type="checkbox" id="f-fotosenviadas"><span class="cl-stamp">✓</span><span class="cl-check-label">Confirmo o envio das fotos</span></label>
+      </div>
+
+      <div class="cl-foto-hint" style="text-align:right;margin-bottom:6px;">O botão "Salvar visita" libera quando todos os campos estiverem preenchidos e o envio das fotos confirmado.</div>
+      <div class="cl-submit-bar">
+        <button class="cl-btn ghost" type="button" id="btn-limpar">Limpar</button>
+        <button class="cl-btn" type="button" id="btn-salvar" disabled>Salvar visita</button>
+      </div>
+    </div>
+
+    <!-- ===================== VIEW GESTOR ===================== -->
+    <div class="cl-view" id="view-gestor">
+      <div class="cl-controls">
+        <div class="cl-field" style="margin-bottom:0;"><label>Data</label><input type="date" id="g-data"></div>
+        <button class="cl-btn small" type="button" id="btn-carregar">Carregar</button>
+        <button class="cl-btn rust small" type="button" id="btn-exportar" disabled>⬇ Exportar Excel (.xlsx)</button>
+      </div>
+      <div class="cl-foto-hint" id="export-status" style="margin-bottom:14px;"></div>
+
+      <div class="cl-summary" id="g-summary" style="display:none;">
+        <div class="cl-stat"><div class="n" id="s-visitas">0</div><div class="l">Visitas no dia</div></div>
+        <div class="cl-stat"><div class="n" id="s-promotores">0</div><div class="l">Promotores ativos</div></div>
+        <div class="cl-stat"><div class="n" id="s-rupturas">0</div><div class="l">Rupturas</div></div>
+        <div class="cl-stat"><div class="n" id="s-validades">0</div><div class="l">Validade próxima</div></div>
+        <div class="cl-stat"><div class="n" id="s-fotos">0</div><div class="l">Fotos anexadas</div></div>
+      </div>
+
+      <div id="g-content"></div>
+    </div>
+  </div>
+
+  <div class="cl-toast" id="cl-toast"><span class="stamp-badge">✓</span><span id="cl-toast-text">Visita salva</span></div>
+
+  <div class="cl-modal-backdrop" id="foto-modal">
+    <div class="cl-modal">
+      <div class="cl-modal-head"><h3 id="foto-modal-title">Fotos da visita</h3><button class="cl-modal-close" id="foto-modal-close">×</button></div>
+      <div class="cl-modal-grid" id="foto-modal-grid"></div>
+    </div>
+  </div>
+  <div class="cl-modal-backdrop" id="pin-modal">
+    <div class="cl-modal" style="max-width:340px;">
+      <div class="cl-modal-head"><h3>Acesso do gestor</h3><button class="cl-modal-close" id="pin-modal-close">×</button></div>
+      <div class="cl-field"><label>Digite o PIN de acesso</label><input type="password" id="pin-input" inputmode="numeric" placeholder="••••"></div>
+      <div class="cl-foto-hint" id="pin-error" style="color:var(--rust);min-height:16px;"></div>
+      <div class="cl-submit-bar" style="margin-top:10px;">
+        <button class="cl-btn ghost small" type="button" id="pin-cancel">Cancelar</button>
+        <button class="cl-btn small" type="button" id="pin-submit">Entrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const todayStr = () => new Date().toISOString().slice(0,10);
+  const nowTime = () => new Date().toTimeString().slice(0,5);
+
+  // ⚠️ COLE AQUI A URL DO SEU APP DA WEB (Google Apps Script), terminando em /exec
+  const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycby7hO8PHwO5QOV1aryzxYDIn4veYm3SIPOzLUy74lYD39teV0xlhEJz_zT5j6VaWkXO/exec';
+
+  // ---------- Tabs + trava de acesso ao relatório do gestor ----------
+  const REPORT_PIN = '2026'; // altere aqui para o PIN que preferir
+  let reportUnlocked = false;
+  let gestorLoadedOnce = false;
+
+  function switchToTab(tab){
+    document.querySelectorAll('.cl-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.cl-view').forEach(v=>v.classList.remove('active'));
+    tab.classList.add('active');
+    $('view-' + tab.dataset.tab).classList.add('active');
+  }
+
+  document.querySelectorAll('.cl-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      if(tab.dataset.tab === 'gestor' && !reportUnlocked){
+        $('pin-input').value = '';
+        $('pin-error').textContent = '';
+        $('pin-modal').classList.add('show');
+        setTimeout(()=> $('pin-input').focus(), 50);
+        return;
+      }
+      switchToTab(tab);
+    });
+  });
+
+  function tryUnlock(){
+    if($('pin-input').value === REPORT_PIN){
+      reportUnlocked = true;
+      $('pin-modal').classList.remove('show');
+      switchToTab(document.querySelector('.cl-tab[data-tab="gestor"]'));
+      if(!gestorLoadedOnce){
+        gestorLoadedOnce = true;
+        loadDay($('g-data').value);
+      }
+    } else {
+      $('pin-error').textContent = 'PIN incorreto. Tente novamente.';
+    }
+  }
+  $('pin-submit').addEventListener('click', tryUnlock);
+  $('pin-input').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') tryUnlock(); });
+  $('pin-cancel').addEventListener('click', ()=> $('pin-modal').classList.remove('show'));
+  $('pin-modal-close').addEventListener('click', ()=> $('pin-modal').classList.remove('show'));
+
+  // ---------- Defaults ----------
+  $('f-data').value = todayStr();
+  $('g-data').value = todayStr();
+
+  $('btn-agora-entrada').addEventListener('click', ()=> $('f-entrada').value = nowTime());
+  $('btn-agora-saida').addEventListener('click', ()=> $('f-saida').value = nowTime());
+
+  // ---------- Ruptura rows ----------
+  function addRupturaRow(){
+    const row = document.createElement('div');
+    row.className = 'cl-ruptura-row';
+    row.innerHTML = '<input type="text" placeholder="Produto" class="rup-produto">' +
+      '<input type="text" placeholder="Indústria" class="rup-industria">' +
+      '<button type="button" class="cl-remove">×</button>';
+    row.querySelector('.cl-remove').addEventListener('click', ()=> row.remove());
+    $('ruptura-list').appendChild(row);
+  }
+  $('btn-add-ruptura').addEventListener('click', addRupturaRow);
+
+  function collectRupturas(){
+    return Array.from(document.querySelectorAll('.cl-ruptura-row')).map(row=>({
+      produto: row.querySelector('.rup-produto').value.trim(),
+      industria: row.querySelector('.rup-industria').value.trim()
+    })).filter(r => r.produto || r.industria);
+  }
+
+  // ---------- Validade próxima ----------
+  function addValidadeRow(){
+    const row = document.createElement('div');
+    row.className = 'cl-validade-row';
+    row.innerHTML = '<input type="text" placeholder="Produto" class="val-produto">' +
+      '<select class="val-prazo">' +
+      '<option value="30 dias">30 dias</option>' +
+      '<option value="60 dias">60 dias</option>' +
+      '<option value="90 dias">90 dias</option>' +
+      '</select>' +
+      '<button type="button" class="cl-remove">×</button>';
+    row.querySelector('.cl-remove').addEventListener('click', ()=>{ row.remove(); validateForm(); });
+    row.querySelector('.val-produto').addEventListener('input', validateForm);
+    $('validade-list').appendChild(row);
+  }
+  $('btn-add-validade').addEventListener('click', addValidadeRow);
+
+  function collectValidades(){
+    return Array.from(document.querySelectorAll('.cl-validade-row')).map(row=>({
+      produto: row.querySelector('.val-produto').value.trim(),
+      prazo: row.querySelector('.val-prazo').value
+    })).filter(v => v.produto);
+  }
+
+  // ---------- Fotos (captura + compressão) ----------
+  let currentPhotos = [];
+
+  function compressImage(file, maxDim, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Falha ao carregar imagem'));
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if(w > h && w > maxDim){ h = Math.round(h * (maxDim / w)); w = maxDim; }
+          else if(h >= w && h > maxDim){ w = Math.round(w * (maxDim / h)); h = maxDim; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderFotoGrid(){
+    const grid = $('foto-grid');
+    grid.innerHTML = '';
+    currentPhotos.forEach((dataUrl, idx)=>{
+      const thumb = document.createElement('div');
+      thumb.className = 'cl-foto-thumb';
+      thumb.innerHTML = '<img src="' + dataUrl + '" alt="foto ' + (idx+1) + '"><button type="button">×</button>';
+      thumb.querySelector('button').addEventListener('click', ()=>{
+        currentPhotos.splice(idx,1);
+        renderFotoGrid();
+      });
+      grid.appendChild(thumb);
+    });
+    $('foto-count').textContent = currentPhotos.length === 0
+      ? 'Nenhuma foto anexada'
+      : currentPhotos.length + ' foto(s) anexada(s)';
+  }
+
+  $('btn-add-foto').addEventListener('click', ()=> $('foto-input').click());
+  $('foto-input').addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    for(const file of files){
+      try{
+        const compressed = await compressImage(file, 900, 0.55);
+        currentPhotos.push(compressed);
+      }catch(err){ console.error(err); }
+    }
+    renderFotoGrid();
+    e.target.value = '';
+  });
+
+  // ---------- Toast ----------
+  function showToast(text, type){
+    $('cl-toast-text').textContent = text;
+    $('cl-toast').classList.toggle('error', type === 'error');
+    $('cl-toast').classList.add('show');
+    setTimeout(()=> $('cl-toast').classList.remove('show'), 3200);
+  }
+
+  // ---------- Save visit ----------
+  function clearForm(){
+    ['f-promotor','f-cliente','f-cnpj','f-entrada','f-saida'].forEach(id => $(id).value = '');
+    $('f-data').value = todayStr();
+    document.querySelectorAll('#view-promotor input[type=checkbox]').forEach(c => c.checked = false);
+    $('ruptura-list').innerHTML = '';
+    $('validade-list').innerHTML = '';
+    currentPhotos = [];
+    renderFotoGrid();
+    validateForm();
+  }
+
+  $('btn-limpar').addEventListener('click', clearForm);
+
+  // ---------- Validação: só libera "Salvar visita" com tudo preenchido ----------
+  const REQUIRED_TEXT_IDS = ['f-promotor','f-cliente','f-cnpj','f-data','f-entrada','f-saida'];
+  const REQUIRED_CHECK_IDS = [
+    'a-estoque','a-validade','a-precos','a-pdv',
+    'e-layout','e-pontosextras','e-reabastecer','e-cartazes','e-materiais','e-fotos',
+    'f-fotosenviadas'
+  ];
+
+  function validateForm(){
+    const textOk = REQUIRED_TEXT_IDS.every(id => $(id).value.trim() !== '');
+    const checksOk = REQUIRED_CHECK_IDS.every(id => $(id).checked);
+    const ok = textOk && checksOk;
+    $('btn-salvar').disabled = !ok;
+    return ok;
+  }
+
+  REQUIRED_TEXT_IDS.forEach(id => $(id).addEventListener('input', validateForm));
+  REQUIRED_CHECK_IDS.forEach(id => $(id).addEventListener('change', validateForm));
+
+  $('btn-salvar').addEventListener('click', async ()=>{
+    if(!validateForm()){
+      showToast('Preencha todos os campos e confirme o envio das fotos antes de salvar', 'error');
+      return;
+    }
+    const promotor = $('f-promotor').value.trim();
+    const cliente = $('f-cliente').value.trim();
+    const cnpj = $('f-cnpj').value.trim();
+    const data = $('f-data').value;
+
+    if(!promotor || !cliente || !data){
+      showToast('Preencha promotor, cliente e data', 'error');
+      return;
+    }
+
+    const record = {
+      id: 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      promotor, cliente, cnpj, data,
+      horarioEntrada: $('f-entrada').value,
+      horarioSaida: $('f-saida').value,
+      abertura: {
+        estoque: $('a-estoque').checked,
+        validade: $('a-validade').checked,
+        precos: $('a-precos').checked,
+        pdv: $('a-pdv').checked
+      },
+      exposicao: {
+        layout: $('e-layout').checked,
+        pontosExtras: $('e-pontosextras').checked,
+        reabastecer: $('e-reabastecer').checked,
+        cartazes: $('e-cartazes').checked,
+        materiais: $('e-materiais').checked,
+        fotosAntesDepois: $('e-fotos').checked
+      },
+      validades: collectValidades(),
+      rupturas: collectRupturas(),
+      fotos: currentPhotos.slice(),
+      fotosEnviadas: $('f-fotosenviadas').checked,
+      criadoEm: new Date().toISOString()
+    };
+
+    const approxSize = new Blob([JSON.stringify(record)]).size;
+    if(approxSize > 15000000){
+      showToast('Fotos excedem o limite de tamanho. Remova algumas e tente novamente.', 'error');
+      return;
+    }
+
+    if(!SHEETS_API_URL || SHEETS_API_URL.indexOf('COLE_AQUI') !== -1){
+      showToast('Backend não configurado. Avise o administrador do site.', 'error');
+      return;
+    }
+
+    $('btn-salvar').disabled = true;
+    try{
+      const res = await fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveVisit', record })
+      });
+      const json = await res.json();
+      if(json && json.ok){
+        showToast('Visita registrada com sucesso (' + record.fotos.length + ' foto(s))');
+        clearForm();
+      } else {
+        showToast('Não foi possível salvar: ' + (json && json.error ? json.error : 'erro desconhecido'), 'error');
+      }
+    }catch(err){
+      console.error(err);
+      showToast('Erro ao salvar a visita. Verifique sua conexão.', 'error');
+    }
+    validateForm();
+  });
+
+  // ---------- Modal de fotos ----------
+  function openFotoModal(record){
+    $('foto-modal-title').textContent = 'Fotos — ' + record.promotor + ' · ' + record.cliente;
+    const grid = $('foto-modal-grid');
+    grid.innerHTML = '';
+    (record.fotos || []).forEach(src=>{
+      const img = document.createElement('img');
+      img.src = src;
+      img.addEventListener('click', ()=> window.open(src, '_blank'));
+      grid.appendChild(img);
+    });
+    $('foto-modal').classList.add('show');
+  }
+  $('foto-modal-close').addEventListener('click', ()=> $('foto-modal').classList.remove('show'));
+  $('foto-modal').addEventListener('click', (e)=>{ if(e.target.id === 'foto-modal') $('foto-modal').classList.remove('show'); });
+
+  // ---------- Gestor view ----------
+  let lastRecords = [];
+
+  async function loadDay(dateStr){
+    $('g-content').innerHTML = '<div class="cl-loading">Carregando visitas...</div>';
+    $('g-summary').style.display = 'none';
+    $('btn-exportar').disabled = true;
+    $('export-status').textContent = '';
+
+    if(!SHEETS_API_URL || SHEETS_API_URL.indexOf('COLE_AQUI') !== -1){
+      $('g-content').innerHTML = '<div class="cl-empty">Backend não configurado. Cole a URL do Apps Script no código do site.</div>';
+      return;
+    }
+
+    let records = [];
+    try{
+      const res = await fetch(SHEETS_API_URL + '?action=listVisits&date=' + encodeURIComponent(dateStr));
+      const json = await res.json();
+      if(json && json.ok){
+        records = json.records || [];
+      } else {
+        $('g-content').innerHTML = '<div class="cl-empty">Erro ao carregar: ' + (json && json.error ? json.error : 'erro desconhecido') + '</div>';
+        return;
+      }
+    }catch(err){
+      console.error(err);
+      $('g-content').innerHTML = '<div class="cl-empty">Não foi possível conectar à planilha. Verifique sua conexão.</div>';
+      return;
+    }
+    records.sort((a,b)=> (a.promotor||'').localeCompare(b.promotor||'') || (a.criadoEm||'').localeCompare(b.criadoEm||''));
+    lastRecords = records;
+    renderGestor(records, dateStr);
+  }
+
+  function renderGestor(records, dateStr){
+    if(records.length === 0){
+      $('g-content').innerHTML = '<div class="cl-empty">Nenhuma visita registrada para ' + dateStr.split('-').reverse().join('/') + '.</div>';
+      $('g-summary').style.display = 'none';
+      $('btn-exportar').disabled = true;
+      return;
+    }
+
+    const promotoresUnicos = new Set(records.map(r=>r.promotor)).size;
+    const totalRupturas = records.reduce((acc,r)=> acc + (r.rupturas ? r.rupturas.length : 0), 0);
+    const totalValidades = records.reduce((acc,r)=> acc + (r.validades ? r.validades.length : 0), 0);
+    const totalFotos = records.reduce((acc,r)=> acc + (r.fotos ? r.fotos.length : 0), 0);
+    $('s-visitas').textContent = records.length;
+    $('s-promotores').textContent = promotoresUnicos;
+    $('s-rupturas').textContent = totalRupturas;
+    $('s-validades').textContent = totalValidades;
+    $('s-fotos').textContent = totalFotos;
+    $('g-summary').style.display = 'grid';
+    $('btn-exportar').disabled = false;
+
+    let html = '<table class="cl-table"><thead><tr>' +
+      '<th>Promotor</th><th>Cliente</th><th>CNPJ</th><th>Entrada</th><th>Saída</th><th>Status</th><th>Rupturas</th><th>Validade</th><th>Fotos</th>' +
+      '</tr></thead><tbody>';
+
+    records.forEach((r, idx)=>{
+      const completo = r.horarioEntrada && r.horarioSaida && r.fotosEnviadas;
+      const badge = completo ? '<span class="cl-badge ok">Completo</span>' : '<span class="cl-badge pending">Incompleto</span>';
+      const nRup = r.rupturas ? r.rupturas.length : 0;
+      const nVal = r.validades ? r.validades.length : 0;
+      const nFotos = r.fotos ? r.fotos.length : 0;
+      html += '<tr class="cl-row-expand" data-idx="' + idx + '">' +
+        '<td>' + escapeHtml(r.promotor||'-') + '</td>' +
+        '<td>' + escapeHtml(r.cliente||'-') + '</td>' +
+        '<td class="cl-cnpj">' + escapeHtml(r.cnpj||'-') + '</td>' +
+        '<td>' + escapeHtml(r.horarioEntrada||'-') + '</td>' +
+        '<td>' + escapeHtml(r.horarioSaida||'-') + '</td>' +
+        '<td>' + badge + '</td>' +
+        '<td>' + nRup + '</td>' +
+        '<td>' + nVal + '</td>' +
+        '<td>' + (nFotos > 0 ? '<button type="button" class="cl-fotolink" data-idx="' + idx + '">' + nFotos + ' ver</button>' : '0') + '</td>' +
+        '</tr>';
+      if(nRup > 0 || nVal > 0){
+        let detailParts = [];
+        if(nVal > 0){
+          detailParts.push(r.validades.map(v => 'Validade ' + escapeHtml(v.prazo||'-') + ' — Produto: <strong>' + escapeHtml(v.produto||'-') + '</strong>').join('<br>'));
+        }
+        if(nRup > 0){
+          detailParts.push(r.rupturas.map(ru => 'Ruptura — Produto: <strong>' + escapeHtml(ru.produto||'-') + '</strong> | Indústria: <strong>' + escapeHtml(ru.industria||'-') + '</strong>').join('<br>'));
+        }
+        html += '<tr class="cl-rup-row-' + idx + '" style="display:none;"><td colspan="9" class="cl-rup-detail">' +
+          detailParts.join('<br>') +
+          '</td></tr>';
+      }
+    });
+    html += '</tbody></table>';
+    $('g-content').innerHTML = html;
+
+    document.querySelectorAll('.cl-row-expand').forEach(row=>{
+      row.addEventListener('click', (e)=>{
+        if(e.target.classList.contains('cl-fotolink')) return;
+        const idx = row.dataset.idx;
+        const detail = document.querySelector('.cl-rup-row-' + idx);
+        if(detail) detail.style.display = detail.style.display === 'none' ? 'table-row' : 'none';
+      });
+    });
+    document.querySelectorAll('.cl-fotolink').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        openFotoModal(records[parseInt(btn.dataset.idx,10)]);
+      });
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  $('btn-carregar').addEventListener('click', ()=> loadDay($('g-data').value || todayStr()));
+
+  // ---------- Exportar Excel com fotos embutidas (ExcelJS) ----------
+  $('btn-exportar').addEventListener('click', async ()=>{
+    if(!lastRecords.length) return;
+    $('btn-exportar').disabled = true;
+    $('export-status').textContent = 'Gerando planilha com as fotos, isso pode levar alguns segundos...';
+
+    try{
+      const workbook = new ExcelJS.Workbook();
+
+      const visitasSheet = workbook.addWorksheet('Visitas');
+      visitasSheet.columns = [
+        {header:'Promotor', key:'promotor', width:20},
+        {header:'Cliente', key:'cliente', width:24},
+        {header:'CNPJ', key:'cnpj', width:20},
+        {header:'Data', key:'data', width:12},
+        {header:'Entrada', key:'entrada', width:10},
+        {header:'Saída', key:'saida', width:10},
+        {header:'Estoque OK', key:'estoque', width:12},
+        {header:'Validade OK', key:'validade', width:12},
+        {header:'Preços OK', key:'precos', width:12},
+        {header:'PDV Higienizado', key:'pdv', width:15},
+        {header:'Layout Correto', key:'layout', width:14},
+        {header:'Pontos Extras', key:'pontosExtras', width:14},
+        {header:'Reabastecido', key:'reabastecer', width:14},
+        {header:'Cartazes', key:'cartazes', width:12},
+        {header:'Materiais Posicionados', key:'materiais', width:18},
+        {header:'Fotos Enviadas', key:'fotosEnviadas', width:14},
+        {header:'Qtd. Rupturas', key:'qtdRupturas', width:13},
+        {header:'Qtd. Validade Próxima', key:'qtdValidades', width:18},
+        {header:'Qtd. Fotos', key:'qtdFotos', width:11}
+      ];
+      visitasSheet.getRow(1).font = {bold:true};
+      lastRecords.forEach(r=>{
+        visitasSheet.addRow({
+          promotor:r.promotor, cliente:r.cliente, cnpj:r.cnpj, data:r.data,
+          entrada:r.horarioEntrada, saida:r.horarioSaida,
+          estoque:r.abertura?.estoque?'Sim':'Não',
+          validade:r.abertura?.validade?'Sim':'Não',
+          precos:r.abertura?.precos?'Sim':'Não',
+          pdv:r.abertura?.pdv?'Sim':'Não',
+          layout:r.exposicao?.layout?'Sim':'Não',
+          pontosExtras:r.exposicao?.pontosExtras?'Sim':'Não',
+          reabastecer:r.exposicao?.reabastecer?'Sim':'Não',
+          cartazes:r.exposicao?.cartazes?'Sim':'Não',
+          materiais:r.exposicao?.materiais?'Sim':'Não',
+          fotosEnviadas:r.fotosEnviadas?'Sim':'Não',
+          qtdRupturas:(r.rupturas||[]).length,
+          qtdValidades:(r.validades||[]).length,
+          qtdFotos:(r.fotos||[]).length
+        });
+      });
+
+      const validadeSheet = workbook.addWorksheet('Validade Próxima');
+      validadeSheet.columns = [
+        {header:'Promotor', key:'promotor', width:20},
+        {header:'Cliente', key:'cliente', width:24},
+        {header:'CNPJ', key:'cnpj', width:20},
+        {header:'Data', key:'data', width:12},
+        {header:'Produto', key:'produto', width:26},
+        {header:'Prazo', key:'prazo', width:12}
+      ];
+      validadeSheet.getRow(1).font = {bold:true};
+      lastRecords.forEach(r=>{
+        (r.validades||[]).forEach(v=>{
+          validadeSheet.addRow({promotor:r.promotor, cliente:r.cliente, cnpj:r.cnpj, data:r.data, produto:v.produto, prazo:v.prazo});
+        });
+      });
+
+      const rupturasSheet = workbook.addWorksheet('Rupturas');
+      rupturasSheet.columns = [
+        {header:'Promotor', key:'promotor', width:20},
+        {header:'Cliente', key:'cliente', width:24},
+        {header:'CNPJ', key:'cnpj', width:20},
+        {header:'Data', key:'data', width:12},
+        {header:'Produto', key:'produto', width:26},
+        {header:'Indústria', key:'industria', width:22}
+      ];
+      rupturasSheet.getRow(1).font = {bold:true};
+      lastRecords.forEach(r=>{
+        (r.rupturas||[]).forEach(ru=>{
+          rupturasSheet.addRow({promotor:r.promotor, cliente:r.cliente, cnpj:r.cnpj, data:r.data, produto:ru.produto, industria:ru.industria});
+        });
+      });
+
+      const fotosSheet = workbook.addWorksheet('Fotos');
+      fotosSheet.getColumn(1).width = 46;
+      fotosSheet.getColumn(2).width = 30;
+      let rowCursor = 1;
+      const comFotos = lastRecords.filter(r => r.fotos && r.fotos.length);
+      if(comFotos.length === 0){
+        fotosSheet.getCell('A1').value = 'Nenhuma foto anexada nas visitas deste dia.';
+      } else {
+        fotosSheet.getCell('A1').value = 'Promotor / Cliente / Data';
+        fotosSheet.getCell('B1').value = 'Fotos (clique para abrir)';
+        fotosSheet.getRow(1).font = {bold:true};
+        rowCursor = 2;
+        for(const r of comFotos){
+          fotosSheet.getCell('A' + rowCursor).value = r.promotor + ' — ' + r.cliente + ' (' + (r.cnpj || 's/ CNPJ') + ') — ' + r.data;
+          fotosSheet.getCell('A' + rowCursor).font = {bold:true};
+          r.fotos.forEach((url, i)=>{
+            const cell = fotosSheet.getCell(String.fromCharCode(66 + i) + rowCursor);
+            cell.value = {text: 'Foto ' + (i+1), hyperlink: url};
+            cell.font = {color:{argb:'FF2E6F49'}, underline:true};
+          });
+          rowCursor += 1;
+        }
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const url = URL.createObjectURL(blob);
+      const dateStr = $('g-data').value || todayStr();
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'relatorio-visitas-' + dateStr + '.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      $('export-status').textContent = 'Planilha gerada com sucesso.';
+    }catch(err){
+      console.error(err);
+      $('export-status').textContent = 'Erro ao gerar a planilha. Tente novamente com menos fotos por visita.';
+    }
+    $('btn-exportar').disabled = false;
+  });
+
+  renderFotoGrid();
+  validateForm();
+})();
+</script>
